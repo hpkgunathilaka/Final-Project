@@ -1,0 +1,33 @@
+{
+  "nav.home": "මුල් පිටුව",
+  "nav.about": "පිළිබඳව",
+  "nav.projects": "ව්‍යාපෘති",
+  "nav.postProject": "ව්‍යාපෘතියක් දාන්න",
+  "nav.login": "පිවිසෙන්න",
+  "nav.register": "ලියාපදිංචි වන්න",
+  "nav.admin": "පරිපාලක",
+
+  "lang.label": "භාෂාව",
+
+  "admin.title": "පරිපාලක පැනලය",
+  "admin.users": "පරිශීලකයින්",
+  "admin.projects": "ව්‍යාපෘති",
+  "admin.refresh": "නවීකරණය",
+  "admin.block": "අවහිර කරන්න",
+  "admin.unblock": "අවහිර ඉවත් කරන්න",
+  "admin.delete": "මකන්න",
+  "admin.deleteInactive": "අක්‍රිය මකන්න",
+  "admin.days": "දින",
+
+  "admin.col.name": "නම",
+  "admin.col.email": "ඊමේල්",
+  "admin.col.role": "භූමිකාව",
+  "admin.col.lastLogin": "අවසන් පිවිසුම",
+  "admin.col.blocked": "අවහිර",
+  "admin.col.actions": "ක්‍රියා",
+  "admin.col.title": "ශීර්ෂය",
+  "admin.col.status": "තත්ත්වය",
+  "admin.col.createdBy": "නිර්මාතෘ",
+
+  "admin.note": "පරිපාලක ගිණුමක් අවශ්‍යයි."
+}

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Collaboration Platform for NGOs and Tech Partners</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="./index.html" aria-label="Smart Collaboration Platform">
+          <span class="brand-mark" aria-hidden="true">SCP</span>
+          <span class="brand-text">Smart Collaboration Platform</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="./index.html" data-i18n="nav.home">Home</a>
+          <a href="#about" data-i18n="nav.about">About</a>
+          <a href="./login.html" data-i18n="nav.login">Login</a>
+          <a class="nav-cta" href="./register.html" data-i18n="nav.register">Register</a>
+        </nav>
+        <div class="row">
+          <label for="langSelect" class="muted small" data-i18n="lang.label">Language</label>
+          <select id="langSelect" aria-label="Language">
+            <option value="en">EN</option>
+            <option value="si">SI</option>
+            <option value="ta">TA</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-inner">
+          <div>
+            <h1>Smart Collaboration Platform for NGOs and Tech Partners</h1>
+            <p class="hero-lead">
+              A simple way for NGOs to post technology-focused project requirements and for tech partners to discover,
+              match, and collaborate on real impact projects.
+            </p>
+            <div class="hero-actions">
+              <a class="button" href="./register.html">Get started</a>
+              <a class="button button-secondary" href="./projects.html">Browse projects</a>
+            </div>
+            <p class="muted small">Backend API: <code>http://localhost:5000</code></p>
+          </div>
+          <div class="hero-panel" role="presentation">
+            <ul class="hero-stats">
+              <li>
+                <strong>NGOs</strong>
+                <span class="muted">Post requirements</span>
+              </li>
+              <li>
+                <strong>Partners</strong>
+                <span class="muted">Offer skills</span>
+              </li>
+              <li>
+                <strong>Projects</strong>
+                <span class="muted">Collaborate securely</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section">
+        <div class="container">
+          <div class="section-title">
+            <h2>About the platform</h2>
+            <p class="muted">
+              This platform is designed to reduce friction between NGOs and technology partners by making it easy to
+              publish project needs, find relevant skills, and coordinate collaboration.
+            </p>
+          </div>
+
+          <div class="cards">
+            <article class="card">
+              <h3>For NGOs</h3>
+              <p>
+                Create a clear project brief, list skills needed, and receive interest from verified tech partners.
+              </p>
+              <ul class="checklist">
+                <li>Post project requirements</li>
+                <li>Describe budget and location</li>
+                <li>Review partner interest</li>
+              </ul>
+              <div class="card-actions">
+                <a class="button button-secondary" href="./post-project.html">Post a project</a>
+              </div>
+            </article>
+
+            <article class="card">
+              <h3>For Tech Partners</h3>
+              <p>
+                Discover NGO projects, express interest with a message, and collaborate on solutions that create impact.
+              </p>
+              <ul class="checklist">
+                <li>Browse open projects</li>
+                <li>Express interest securely</li>
+                <li>Build with real impact</li>
+              </ul>
+              <div class="card-actions">
+                <a class="button button-secondary" href="./projects.html">Find projects</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container">
+          <div class="section-title">
+            <h2>Features</h2>
+            <p class="muted">Core tools to post, match, and collaborate.</p>
+          </div>
+
+          <div class="features">
+            <article class="feature">
+              <h3>Project posting</h3>
+              <p class="muted">NGOs can publish requirements, skills needed, and constraints in a structured format.</p>
+            </article>
+            <article class="feature">
+              <h3>Matching</h3>
+              <p class="muted">Tech partners can browse relevant projects and signal interest with a clear message.</p>
+            </article>
+            <article class="feature">
+              <h3>Collaboration</h3>
+              <p class="muted">JWT-based authentication protects actions like posting and expressing interest.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <strong>Smart Collaboration Platform</strong>
+          <p class="muted small">Connecting NGOs and tech partners for impact.</p>
+        </div>
+        <div class="footer-contact">
+          <div class="muted small">Contact</div>
+          <a href="mailto:contact@example.org">contact@example.org</a>
+          <span class="muted small">+94 00 000 0000</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      initLanguageToggle('langSelect');
+    </script>
+  </body>
+</html>

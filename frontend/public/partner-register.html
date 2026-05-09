@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tech Partner Registration</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>Tech Partner Registration</h1>
+      <nav class="nav">
+        <a href="./index.html">Home</a>
+        <a href="./login.html">Login</a>
+        <a href="./register.html">Back</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <form id="partnerForm" class="form" novalidate>
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" autocomplete="name" />
+            <div class="error" data-error-for="name"></div>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" />
+            <div class="error" data-error-for="email"></div>
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="new-password" />
+            <div class="error" data-error-for="password"></div>
+          </div>
+
+          <div class="field">
+            <label for="role">Role</label>
+            <select id="role" name="role" aria-label="Role">
+              <option value="partner" selected>Tech Partner</option>
+            </select>
+            <div class="error" data-error-for="role"></div>
+          </div>
+
+          <fieldset class="field">
+            <legend>Skills selection</legend>
+            <p class="muted small">Select at least one skill.</p>
+            <div class="skills" role="group" aria-label="Skills">
+              <label class="chip"><input type="checkbox" name="skills" value="Web Development" /> Web Development</label>
+              <label class="chip"><input type="checkbox" name="skills" value="Mobile Apps" /> Mobile Apps</label>
+              <label class="chip"><input type="checkbox" name="skills" value="UI/UX" /> UI/UX</label>
+              <label class="chip"><input type="checkbox" name="skills" value="Data Analysis" /> Data Analysis</label>
+              <label class="chip"><input type="checkbox" name="skills" value="DevOps" /> DevOps</label>
+              <label class="chip"><input type="checkbox" name="skills" value="Cybersecurity" /> Cybersecurity</label>
+            </div>
+            <div class="error" data-error-for="skills"></div>
+          </fieldset>
+
+          <div class="row">
+            <button type="submit">Create Tech Partner account</button>
+            <a class="button button-secondary" href="./login.html">Already have an account?</a>
+          </div>
+
+          <p id="status" class="muted"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      (function () {
+        const form = document.getElementById('partnerForm');
+        const status = document.getElementById('status');
+
+        function getSkills() {
+          return Array.from(form.querySelectorAll('input[name="skills"]:checked')).map((el) => el.value);
+        }
+
+        function validate() {
+          const values = {
+            name: form.name.value.trim(),
+            email: form.email.value.trim(),
+            password: form.password.value,
+            role: form.role.value,
+            skills: getSkills()
+          };
+
+          const errors = {};
+
+          if (!values.name) errors.name = 'Name is required.';
+          if (!values.email) errors.email = 'Email is required.';
+          else if (!validation.isEmail(values.email)) errors.email = 'Enter a valid email address.';
+          if (!values.password) errors.password = 'Password is required.';
+          else if (values.password.length < 6) errors.password = 'Password must be at least 6 characters.';
+          if (!values.role) errors.role = 'Role is required.';
+          if (!values.skills.length) errors.skills = 'Please select at least one skill.';
+
+          return { values, errors };
+        }
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          ui.clearErrors(form);
+          status.textContent = '';
+
+          const { values, errors } = validate();
+          if (Object.keys(errors).length) {
+            ui.showErrors(form, errors);
+            status.textContent = 'Please fix the highlighted fields.';
+            return;
+          }
+
+          status.textContent = 'Creating Tech Partner account...';
+
+          try {
+            const data = await api.post('/auth/register', values);
+            auth.saveSession(data);
+            status.textContent = 'Registration successful. You are now logged in.';
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

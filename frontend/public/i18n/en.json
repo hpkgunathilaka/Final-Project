@@ -1,0 +1,33 @@
+{
+  "nav.home": "Home",
+  "nav.about": "About",
+  "nav.projects": "Projects",
+  "nav.postProject": "Post a Project",
+  "nav.login": "Login",
+  "nav.register": "Register",
+  "nav.admin": "Admin",
+
+  "lang.label": "Language",
+
+  "admin.title": "Admin Panel",
+  "admin.users": "Users",
+  "admin.projects": "Projects",
+  "admin.refresh": "Refresh",
+  "admin.block": "Block",
+  "admin.unblock": "Unblock",
+  "admin.delete": "Delete",
+  "admin.deleteInactive": "Delete inactive",
+  "admin.days": "Days",
+
+  "admin.col.name": "Name",
+  "admin.col.email": "Email",
+  "admin.col.role": "Role",
+  "admin.col.lastLogin": "Last login",
+  "admin.col.blocked": "Blocked",
+  "admin.col.actions": "Actions",
+  "admin.col.title": "Title",
+  "admin.col.status": "Status",
+  "admin.col.createdBy": "Created by",
+
+  "admin.note": "Requires an admin account."
+}

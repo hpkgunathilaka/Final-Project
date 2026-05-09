@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Project Matches</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>Project Matches</h1>
+      <nav class="nav">
+        <a href="./index.html">Home</a>
+        <a href="./projects.html">Projects</a>
+        <a href="./my-projects.html">My Posted Projects</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div class="form">
+          <div class="field">
+            <label for="projectId">Project ID</label>
+            <input id="projectId" type="text" />
+          </div>
+          <div class="row">
+            <button id="loadBtn" type="button">Load Matches</button>
+            <button id="logoutBtn" type="button" class="secondary">Logout</button>
+          </div>
+        </div>
+        <p id="status" class="muted"></p>
+        <div id="results" class="list"></div>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      (function () {
+        const user = auth.getUser();
+        if (!user) {
+          window.location.href = './login.html';
+          return;
+        }
+
+        if (!(user.role === 'ngo' || user.role === 'admin')) {
+          window.location.href = './projects.html';
+          return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const projectIdInput = document.getElementById('projectId');
+        const loadBtn = document.getElementById('loadBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+
+        projectIdInput.value = params.get('projectId') || '';
+
+        function renderMatches(data) {
+          const matches = data.matches || [];
+          if (!matches.length) {
+            results.innerHTML = '<p class="muted">No matching partners found for this project yet.</p>';
+            return;
+          }
+
+          results.innerHTML = matches
+            .map(
+              (m) => `
+              <article class="item">
+                <h3>${escapeHtml(m.partner?.name || '')}</h3>
+                <p class="muted">${escapeHtml(m.partner?.email || '')}</p>
+                <p>Match score: <strong>${Number(m.score || 0)}</strong></p>
+                <p class="muted">Matched skills: ${escapeHtml((m.matchedSkills || []).join(', '))}</p>
+              </article>
+            `
+            )
+            .join('');
+        }
+
+        async function loadMatches() {
+          const projectId = projectIdInput.value.trim();
+          if (!projectId) {
+            status.textContent = 'Project ID is required.';
+            return;
+          }
+
+          status.textContent = 'Loading matches...';
+          results.innerHTML = '';
+
+          try {
+            const data = await request(`/projects/${encodeURIComponent(projectId)}/matches`, {
+              method: 'GET',
+              headers: { Authorization: `Bearer ${auth.getToken()}` }
+            });
+            renderMatches(data);
+            status.textContent = '';
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        }
+
+        loadBtn.addEventListener('click', loadMatches);
+        logoutBtn.addEventListener('click', logoutCurrentUser);
+
+        if (projectIdInput.value) {
+          loadMatches();
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>Admin Login</h1>
+      <nav class="nav">
+        <a href="./index.html">Home</a>
+        <a href="./login.html">User Login</a>
+        <a href="./projects.html">Projects</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <p class="muted">Only admin users can sign in here.</p>
+        <form id="adminLoginForm" class="form">
+          <div class="field">
+            <label for="email">Admin Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" />
+            <div class="error" data-error-for="email"></div>
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" />
+            <div class="error" data-error-for="password"></div>
+          </div>
+
+          <button type="submit">Login as Admin</button>
+        </form>
+        <p id="status" class="muted"></p>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      (function () {
+        const existing = auth.getUser();
+        if (existing && existing.role === 'admin') {
+          window.location.href = './admin.html';
+          return;
+        }
+
+        const form = document.getElementById('adminLoginForm');
+        const status = document.getElementById('status');
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          ui.clearErrors(form);
+          status.textContent = '';
+
+          const email = form.email.value.trim();
+          const password = form.password.value;
+
+          const errors = {};
+          if (!email) errors.email = 'Email is required.';
+          else if (!validation.isEmail(email)) errors.email = 'Enter a valid email address.';
+          if (!password) errors.password = 'Password is required.';
+
+          if (Object.keys(errors).length) {
+            ui.showErrors(form, errors);
+            status.textContent = 'Please fix the highlighted fields.';
+            return;
+          }
+
+          status.textContent = 'Logging in...';
+
+          try {
+            const data = await api.post('/auth/login', { email, password });
+            if (!data?.user || data.user.role !== 'admin') {
+              auth.clearSession();
+              status.textContent = 'This page is only for admin accounts.';
+              return;
+            }
+
+            auth.saveSession(data);
+            window.location.href = './admin.html';
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

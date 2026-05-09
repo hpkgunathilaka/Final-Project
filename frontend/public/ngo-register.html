@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NGO Registration</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>NGO Registration</h1>
+      <nav class="nav">
+        <a href="./index.html">Home</a>
+        <a href="./login.html">Login</a>
+        <a href="./register.html">Back</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <form id="ngoForm" class="form" novalidate>
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" autocomplete="name" />
+            <div class="error" data-error-for="name"></div>
+          </div>
+
+          <div class="field">
+            <label for="org">Organization name</label>
+            <input id="org" name="organizationName" type="text" autocomplete="organization" />
+            <div class="error" data-error-for="organizationName"></div>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" />
+            <div class="error" data-error-for="email"></div>
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="new-password" />
+            <div class="error" data-error-for="password"></div>
+          </div>
+
+          <div class="field">
+            <label for="role">Role</label>
+            <select id="role" name="role" aria-label="Role">
+              <option value="ngo" selected>NGO</option>
+            </select>
+            <div class="error" data-error-for="role"></div>
+          </div>
+
+          <div class="row">
+            <button type="submit">Create NGO account</button>
+            <a class="button button-secondary" href="./login.html">Already have an account?</a>
+          </div>
+
+          <p id="status" class="muted"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      (function () {
+        const form = document.getElementById('ngoForm');
+        const status = document.getElementById('status');
+
+        function validate() {
+          const values = {
+            name: form.name.value.trim(),
+            organizationName: form.organizationName.value.trim(),
+            email: form.email.value.trim(),
+            password: form.password.value,
+            role: form.role.value
+          };
+
+          const errors = {};
+
+          if (!values.name) errors.name = 'Name is required.';
+          if (!values.organizationName) errors.organizationName = 'Organization name is required for NGOs.';
+          if (!values.email) errors.email = 'Email is required.';
+          else if (!validation.isEmail(values.email)) errors.email = 'Enter a valid email address.';
+          if (!values.password) errors.password = 'Password is required.';
+          else if (values.password.length < 6) errors.password = 'Password must be at least 6 characters.';
+          if (!values.role) errors.role = 'Role is required.';
+
+          return { values, errors };
+        }
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          ui.clearErrors(form);
+          status.textContent = '';
+
+          const { values, errors } = validate();
+          if (Object.keys(errors).length) {
+            ui.showErrors(form, errors);
+            status.textContent = 'Please fix the highlighted fields.';
+            return;
+          }
+
+          status.textContent = 'Creating NGO account...';
+
+          try {
+            const data = await api.post('/auth/register', values);
+            auth.saveSession(data);
+            status.textContent = 'Registration successful. You are now logged in.';
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
