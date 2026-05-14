@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Projects</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>Projects</h1>
+      <nav class="nav">
+        <a href="./index.html">Home</a>
+        <a href="./login.html">Login</a>
+        <a href="./register.html">Register</a>
+        <a href="./post-project.html">Post Project</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div class="row">
+          <button id="refreshBtn" type="button">Refresh</button>
+          <button id="logoutBtn" type="button" class="secondary">Logout</button>
+          <span id="me" class="muted"></span>
+        </div>
+        <div id="list" class="list"></div>
+        <p id="status" class="muted"></p>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      (function () {
+        const bootUser = auth.getUser();
+        if (bootUser && bootUser.role === 'ngo') {
+          window.location.href = './my-projects.html';
+          return;
+        }
+
+        const list = document.getElementById('list');
+        const status = document.getElementById('status');
+        const me = document.getElementById('me');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        function isNgoSession() {
+          const user = auth.getUser();
+          return !!(user && user.role === 'ngo');
+        }
+
+        function renderMe() {
+          const session = auth.getSession();
+          me.textContent = session?.user ? `Logged in: ${session.user.email} (${session.user.role})` : 'Not logged in';
+        }
+
+        function renderProjects(projects) {
+          const user = auth.getUser();
+          const canViewMatches = !!(user && (user.role === 'ngo' || user.role === 'admin'));
+          const canUseCollab = !!user;
+          const ngoView = isNgoSession();
+          if (!projects.length) {
+            list.innerHTML = ngoView
+              ? '<p class="muted">You have not posted any projects yet.</p>'
+              : '<p class="muted">No projects yet.</p>';
+            return;
+          }
+
+          list.innerHTML = projects
+            .map(
+              (p) => `
+              <article class="item">
+                <h3>${escapeHtml(p.title)}</h3>
+                <p>${escapeHtml(p.description)}</p>
+                <p class="muted">Posted by: ${escapeHtml(p.createdBy?.name || 'Unknown')}</p>
+                <p class="muted">Skills: ${(p.skillsNeeded || []).map(escapeHtml).join(', ')}</p>
+                <div class="row">
+                  ${ngoView ? '' : `<button data-id="${p._id}" class="interestBtn" type="button">Express Interest (Partner)</button>`}
+                  ${canViewMatches ? `<a class="button button-secondary" href="./matches.html?projectId=${encodeURIComponent(p._id)}">Matches</a>` : ''}
+                  ${canUseCollab ? `<a class="button button-secondary" href="./tasks.html?projectId=${encodeURIComponent(p._id)}">Tasks</a>` : ''}
+                  ${canUseCollab ? `<a class="button button-secondary" href="./messages.html?projectId=${encodeURIComponent(p._id)}">Messages</a>` : ''}
+                </div>
+              </article>
+            `
+            )
+            .join('');
+        }
+
+        async function load() {
+          status.textContent = isNgoSession() ? 'Loading your projects...' : 'Loading...';
+          try {
+            let data;
+            if (isNgoSession()) {
+              const token = auth.getToken();
+              data = await request('/projects/mine', {
+                method: 'GET',
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+              });
+            } else {
+              data = await api.get('/projects');
+            }
+            renderProjects(data.projects || []);
+            status.textContent = '';
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        }
+
+        refreshBtn.addEventListener('click', load);
+        logoutBtn.addEventListener('click', () => {
+          logoutCurrentUser();
+        });
+
+        list.addEventListener('click', async (e) => {
+          const btn = e.target.closest('.interestBtn');
+          if (!btn) return;
+
+          const session = auth.getSession();
+          if (!session?.token) {
+            alert('Please login as a Tech Partner first.');
+            return;
+          }
+
+          const message = prompt('Message to NGO (optional):') || '';
+          try {
+            await api.post(`/projects/${btn.dataset.id}/interest`, { message }, session.token);
+            alert('Interest submitted.');
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+
+        renderMe();
+        load();
+      })();
+    </script>
+  </body>
+</html>

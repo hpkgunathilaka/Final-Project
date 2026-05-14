@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Post a Project</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>Post a Project (NGO)</h1>
+      <nav class="nav">
+        <a href="./index.html">Home</a>
+        <a href="./login.html">Login</a>
+        <a href="./projects.html">Projects</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <form id="projectForm" class="form">
+          <label>
+            Title
+            <input name="title" type="text" required />
+          </label>
+          <label>
+            Description
+            <textarea name="description" rows="5" required></textarea>
+          </label>
+          <label>
+            Skills Needed (comma-separated)
+            <input name="skills" type="text" placeholder="e.g. React, UI/UX, DevOps" />
+          </label>
+          <label>
+            Budget (optional)
+            <input name="budget" type="text" placeholder="e.g. $5000" />
+          </label>
+          <label>
+            Location (optional)
+            <input name="location" type="text" placeholder="e.g. Remote / Colombo" />
+          </label>
+          <button type="submit">Create Project</button>
+        </form>
+        <p id="status" class="muted"></p>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      (function () {
+        const form = document.getElementById('projectForm');
+        const status = document.getElementById('status');
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const session = auth.getSession();
+          if (!session?.token) {
+            status.textContent = 'Please login as an NGO first.';
+            return;
+          }
+
+          const skillsNeeded = form.skills.value
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+          const body = {
+            title: form.title.value.trim(),
+            description: form.description.value.trim(),
+            skillsNeeded,
+            budget: form.budget.value.trim(),
+            location: form.location.value.trim()
+          };
+
+          status.textContent = 'Creating project...';
+          try {
+            await api.post('/projects', body, session.token);
+            status.textContent = 'Project created.';
+            form.reset();
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

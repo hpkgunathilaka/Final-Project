@@ -1,0 +1,18 @@
+# Backend dependencies
+backend/node_modules/
+
+# Backend environment variables (contains secrets!)
+backend/.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/

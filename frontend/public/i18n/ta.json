@@ -1,0 +1,33 @@
+{
+  "nav.home": "முகப்பு",
+  "nav.about": "பற்றி",
+  "nav.projects": "திட்டங்கள்",
+  "nav.postProject": "திட்டம் பதிவிடு",
+  "nav.login": "உள்நுழை",
+  "nav.register": "பதிவு",
+  "nav.admin": "நிர்வாகம்",
+
+  "lang.label": "மொழி",
+
+  "admin.title": "நிர்வாக பலகம்",
+  "admin.users": "பயனர்கள்",
+  "admin.projects": "திட்டங்கள்",
+  "admin.refresh": "புதுப்பி",
+  "admin.block": "தடை செய்",
+  "admin.unblock": "தடை நீக்கு",
+  "admin.delete": "அழி",
+  "admin.deleteInactive": "செயலற்றவற்றை அழி",
+  "admin.days": "நாட்கள்",
+
+  "admin.col.name": "பெயர்",
+  "admin.col.email": "மின்னஞ்சல்",
+  "admin.col.role": "பங்கு",
+  "admin.col.lastLogin": "கடைசி உள்நுழைவு",
+  "admin.col.blocked": "தடை",
+  "admin.col.actions": "செயல்கள்",
+  "admin.col.title": "தலைப்பு",
+  "admin.col.status": "நிலை",
+  "admin.col.createdBy": "உருவாக்கியவர்",
+
+  "admin.note": "நிர்வாக கணக்கு தேவை."
+}

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Project Tasks</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>Project Tasks</h1>
+      <nav class="nav">
+        <a href="./index.html">Home</a>
+        <a href="./projects.html">Projects</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div class="field">
+          <label for="projectId">Project ID</label>
+          <input id="projectId" type="text" />
+        </div>
+        <div class="row">
+          <button id="loadBtn" type="button">Load Tasks</button>
+          <button id="logoutBtn" type="button" class="secondary">Logout</button>
+        </div>
+
+        <hr class="section-divider" />
+
+        <h2 class="heading-no-top">Create Task</h2>
+        <div class="form">
+          <div class="field">
+            <label for="taskTitle">Title</label>
+            <input id="taskTitle" type="text" />
+          </div>
+          <div class="field">
+            <label for="taskDescription">Description</label>
+            <textarea id="taskDescription" rows="3"></textarea>
+          </div>
+          <div class="row">
+            <div class="field minw-180">
+              <label for="taskPriority">Priority</label>
+              <select id="taskPriority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div class="field minw-220">
+              <label for="taskDueDate">Due Date</label>
+              <input id="taskDueDate" type="date" />
+            </div>
+          </div>
+          <button id="createBtn" type="button">Create Task</button>
+        </div>
+
+        <p id="status" class="muted"></p>
+        <div id="taskList" class="list"></div>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      (function () {
+        if (!auth.getUser()) {
+          window.location.href = './login.html';
+          return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const projectIdInput = document.getElementById('projectId');
+        const loadBtn = document.getElementById('loadBtn');
+        const createBtn = document.getElementById('createBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const taskList = document.getElementById('taskList');
+        const status = document.getElementById('status');
+
+        projectIdInput.value = params.get('projectId') || '';
+
+        function currentProjectId() {
+          return projectIdInput.value.trim();
+        }
+
+        function taskCard(t) {
+          const assignee = t.assignedTo ? `${t.assignedTo.name || ''} (${t.assignedTo.email || ''})` : '-';
+          return `
+            <article class="item" data-id="${t._id}">
+              <h3>${escapeHtml(t.title || '')}</h3>
+              <p>${escapeHtml(t.description || '')}</p>
+              <p class="muted">Status: ${escapeHtml(t.status || 'todo')} | Priority: ${escapeHtml(t.priority || 'medium')}</p>
+              <p class="muted">Assigned to: ${escapeHtml(assignee)}</p>
+              <div class="row">
+                <select class="statusSelect">
+                  <option value="todo" ${t.status === 'todo' ? 'selected' : ''}>To Do</option>
+                  <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                  <option value="completed" ${t.status === 'completed' ? 'selected' : ''}>Completed</option>
+                </select>
+                <button type="button" class="statusBtn">Update Status</button>
+                <input class="assignInput" type="text" placeholder="Partner User ID" />
+                <button type="button" class="assignBtn">Assign</button>
+              </div>
+            </article>
+          `;
+        }
+
+        async function loadTasks() {
+          const projectId = currentProjectId();
+          if (!projectId) {
+            status.textContent = 'Project ID is required.';
+            return;
+          }
+
+          status.textContent = 'Loading tasks...';
+          taskList.innerHTML = '';
+
+          try {
+            const data = await request(`/projects/${encodeURIComponent(projectId)}/tasks`, {
+              method: 'GET',
+              headers: { Authorization: `Bearer ${auth.getToken()}` }
+            });
+            const tasks = data.tasks || [];
+            taskList.innerHTML = tasks.length ? tasks.map(taskCard).join('') : '<p class="muted">No tasks yet.</p>';
+            status.textContent = '';
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        }
+
+        async function createTask() {
+          const projectId = currentProjectId();
+          if (!projectId) {
+            status.textContent = 'Project ID is required.';
+            return;
+          }
+
+          const title = document.getElementById('taskTitle').value.trim();
+          const description = document.getElementById('taskDescription').value.trim();
+          const priority = document.getElementById('taskPriority').value;
+          const dueDate = document.getElementById('taskDueDate').value;
+
+          if (!title) {
+            status.textContent = 'Task title is required.';
+            return;
+          }
+
+          status.textContent = 'Creating task...';
+          try {
+            await request(`/projects/${encodeURIComponent(projectId)}/tasks`, {
+              method: 'POST',
+              body: { title, description, priority, dueDate },
+              headers: { Authorization: `Bearer ${auth.getToken()}` }
+            });
+            status.textContent = 'Task created.';
+            await loadTasks();
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        }
+
+        async function updateStatus(taskId, statusValue) {
+          const projectId = currentProjectId();
+          status.textContent = 'Updating task status...';
+          try {
+            await request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/status`, {
+              method: 'PATCH',
+              body: { status: statusValue },
+              headers: { Authorization: `Bearer ${auth.getToken()}` }
+            });
+            status.textContent = 'Task status updated.';
+            await loadTasks();
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        }
+
+        async function assignTask(taskId, assignedTo) {
+          const projectId = currentProjectId();
+          if (!assignedTo) {
+            status.textContent = 'Partner User ID is required for assignment.';
+            return;
+          }
+
+          status.textContent = 'Assigning task...';
+          try {
+            await request(`/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/assign`, {
+              method: 'PATCH',
+              body: { assignedTo },
+              headers: { Authorization: `Bearer ${auth.getToken()}` }
+            });
+            status.textContent = 'Task assigned.';
+            await loadTasks();
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        }
+
+        loadBtn.addEventListener('click', loadTasks);
+        createBtn.addEventListener('click', createTask);
+        logoutBtn.addEventListener('click', logoutCurrentUser);
+
+        taskList.addEventListener('click', async (e) => {
+          const card = e.target.closest('article.item');
+          if (!card) return;
+          const taskId = card.getAttribute('data-id');
+
+          if (e.target.classList.contains('statusBtn')) {
+            const statusValue = card.querySelector('.statusSelect').value;
+            await updateStatus(taskId, statusValue);
+          }
+
+          if (e.target.classList.contains('assignBtn')) {
+            const assignedTo = card.querySelector('.assignInput').value.trim();
+            await assignTask(taskId, assignedTo);
+          }
+        });
+
+        if (projectIdInput.value) {
+          loadTasks();
+        }
+      })();
+    </script>
+  </body>
+</html>

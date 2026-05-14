@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <div class="row admin-row-between">
+        <h1 data-i18n="admin.title">Admin Panel</h1>
+        <div class="row">
+          <label for="langSelect" class="muted small" data-i18n="lang.label">Language</label>
+          <select id="langSelect" aria-label="Language">
+            <option value="en">EN</option>
+            <option value="si">SI</option>
+            <option value="ta">TA</option>
+          </select>
+        </div>
+      </div>
+      <p class="muted small" data-i18n="admin.note">Requires an admin account.</p>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div class="row admin-row-between">
+          <h2 class="admin-heading-reset" data-i18n="admin.users">Users</h2>
+          <div class="row">
+            <label for="inactiveDays" class="muted small" data-i18n="admin.days">Days</label>
+            <input id="inactiveDays" class="admin-days-input" type="number" min="1" max="3650" value="90" />
+            <button id="btnDeleteInactive" type="button" data-i18n="admin.deleteInactive">Delete inactive</button>
+            <button id="btnRefreshUsers" type="button" data-i18n="admin.refresh">Refresh</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th data-i18n="admin.col.name">Name</th>
+                <th data-i18n="admin.col.email">Email</th>
+                <th data-i18n="admin.col.role">Role</th>
+                <th data-i18n="admin.col.lastLogin">Last login</th>
+                <th data-i18n="admin.col.blocked">Blocked</th>
+                <th data-i18n="admin.col.actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+          </table>
+        </div>
+        <p id="usersMsg" class="muted small"></p>
+      </section>
+
+      <section class="card admin-section-gap">
+        <div class="row admin-row-between">
+          <h2 class="admin-heading-reset" data-i18n="admin.projects">Projects</h2>
+          <button id="btnRefreshProjects" type="button" data-i18n="admin.refresh">Refresh</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th data-i18n="admin.col.title">Title</th>
+                <th data-i18n="admin.col.status">Status</th>
+                <th data-i18n="admin.col.createdBy">Created by</th>
+              </tr>
+            </thead>
+            <tbody id="projectsTbody"></tbody>
+          </table>
+        </div>
+        <p id="projectsMsg" class="muted small"></p>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      const me = auth.getUser();
+      if (!me || me.role !== 'admin') {
+        window.location.href = './admin-login.html';
+      }
+
+      initLanguageToggle('langSelect');
+
+      function fmtDate(v) {
+        if (!v) return '-';
+        const d = new Date(v);
+        return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString();
+      }
+
+      async function adminRequest(path, options) {
+        const token = auth.getToken();
+        if (!token) throw new Error('Please login as an admin first.');
+        return request(path, {
+          method: (options && options.method) || 'GET',
+          body: options && options.body ? options.body : undefined,
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      async function loadUsers() {
+        const tbody = document.getElementById('usersTbody');
+        const msg = document.getElementById('usersMsg');
+        tbody.innerHTML = '';
+        msg.textContent = '';
+        try {
+          const data = await adminRequest('/admin/users');
+          const users = data.users || [];
+          if (!users.length) {
+            msg.textContent = 'No users.';
+            return;
+          }
+          users.forEach((u) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${escapeHtml(u.name || '')}</td>
+              <td>${escapeHtml(u.email || '')}</td>
+              <td>${escapeHtml(u.role || '')}</td>
+              <td>${escapeHtml(fmtDate(u.lastLoginAt))}</td>
+              <td>${u.isBlocked ? 'Yes' : 'No'}</td>
+              <td>
+                <button class="btn-small" type="button" data-action="toggle" data-id="${u._id}" data-blocked="${u.isBlocked ? '1' : '0'}">${u.isBlocked ? i18n.t('admin.unblock') : i18n.t('admin.block')}</button>
+                <button class="btn-small" type="button" data-action="delete" data-id="${u._id}">${i18n.t('admin.delete')}</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (e) {
+          msg.textContent = e.message;
+        }
+      }
+
+      async function loadProjects() {
+        const tbody = document.getElementById('projectsTbody');
+        const msg = document.getElementById('projectsMsg');
+        tbody.innerHTML = '';
+        msg.textContent = '';
+        try {
+          const data = await adminRequest('/admin/projects');
+          const projects = data.projects || [];
+          if (!projects.length) {
+            msg.textContent = 'No projects.';
+            return;
+          }
+          projects.forEach((p) => {
+            const tr = document.createElement('tr');
+            const createdBy = p.createdBy ? `${p.createdBy.name || ''} (${p.createdBy.email || ''})` : '-';
+            tr.innerHTML = `
+              <td>${escapeHtml(p.title || '')}</td>
+              <td>${escapeHtml(p.status || '')}</td>
+              <td>${escapeHtml(createdBy)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (e) {
+          msg.textContent = e.message;
+        }
+      }
+
+      document.getElementById('btnRefreshUsers').addEventListener('click', loadUsers);
+      document.getElementById('btnRefreshProjects').addEventListener('click', loadProjects);
+
+      document.getElementById('btnDeleteInactive').addEventListener('click', async () => {
+        const msg = document.getElementById('usersMsg');
+        msg.textContent = '';
+        const days = parseInt(document.getElementById('inactiveDays').value || '90', 10);
+        try {
+          const data = await adminRequest(`/admin/users/inactive?days=${encodeURIComponent(days)}`, { method: 'DELETE' });
+          msg.textContent = `Deleted: ${data.deletedCount || 0}`;
+          await loadUsers();
+        } catch (e) {
+          msg.textContent = e.message;
+        }
+      });
+
+      document.getElementById('usersTbody').addEventListener('click', async (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        const action = btn.getAttribute('data-action');
+        const msg = document.getElementById('usersMsg');
+        msg.textContent = '';
+        try {
+          if (action === 'toggle') {
+            const isBlocked = btn.getAttribute('data-blocked') === '1';
+            await adminRequest(`/admin/users/${encodeURIComponent(id)}/block`, {
+              method: 'PATCH',
+              body: { blocked: !isBlocked, reason: !isBlocked ? 'Blocked by admin' : '' }
+            });
+            await loadUsers();
+          } else if (action === 'delete') {
+            await adminRequest(`/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            await loadUsers();
+          }
+        } catch (err) {
+          msg.textContent = err.message;
+        }
+      });
+
+      loadUsers();
+      loadProjects();
+    </script>
+  </body>
+</html>

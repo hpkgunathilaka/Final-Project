@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Register</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>Register</h1>
+      <nav class="nav">
+        <a href="./index.html" data-i18n="nav.home">Home</a>
+        <a href="./login.html" data-i18n="nav.login">Login</a>
+        <a href="./projects.html" data-i18n="nav.projects">Projects</a>
+      </nav>
+      <div class="row">
+        <label for="langSelect" class="muted small" data-i18n="lang.label">Language</label>
+        <select id="langSelect" aria-label="Language">
+          <option value="en">EN</option>
+          <option value="si">SI</option>
+          <option value="ta">TA</option>
+        </select>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <p class="muted">
+          Choose the account type that best describes you. You can register as an NGO (to post projects) or as a Tech
+          Partner (to browse projects and express interest).
+        </p>
+        <div class="choice-grid" role="list">
+          <a class="choice" role="listitem" href="./ngo-register.html">
+            <h2>NGO Registration</h2>
+            <p class="muted">Create an NGO account and start posting technology requirements.</p>
+            <span class="choice-action">Continue →</span>
+          </a>
+          <a class="choice" role="listitem" href="./partner-register.html">
+            <h2>Tech Partner Registration</h2>
+            <p class="muted">Register your skills and discover NGO projects that need support.</p>
+            <span class="choice-action">Continue →</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      initLanguageToggle('langSelect');
+    </script>
+  </body>
+</html>

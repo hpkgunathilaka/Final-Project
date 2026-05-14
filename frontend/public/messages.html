@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Project Messages</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <h1>Project Messages</h1>
+      <nav class="nav">
+        <a href="./index.html">Home</a>
+        <a href="./projects.html">Projects</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div class="row">
+          <div class="field minw-260">
+            <label for="projectId">Project ID</label>
+            <input id="projectId" type="text" />
+          </div>
+          <div class="field minw-260">
+            <label for="otherUserId">Other User ID</label>
+            <input id="otherUserId" type="text" />
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="loadBtn" type="button">Load Thread</button>
+          <button id="logoutBtn" type="button" class="secondary">Logout</button>
+        </div>
+
+        <div class="field mt-12">
+          <label for="messageContent">Message</label>
+          <textarea id="messageContent" rows="3"></textarea>
+        </div>
+        <button id="sendBtn" type="button">Send Message</button>
+
+        <p id="status" class="muted"></p>
+        <div id="thread" class="list"></div>
+      </section>
+    </main>
+
+    <script src="./assets/app.js"></script>
+    <script>
+      (function () {
+        if (!auth.getUser()) {
+          window.location.href = './login.html';
+          return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const projectIdInput = document.getElementById('projectId');
+        const otherUserIdInput = document.getElementById('otherUserId');
+        const messageInput = document.getElementById('messageContent');
+        const loadBtn = document.getElementById('loadBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const status = document.getElementById('status');
+        const thread = document.getElementById('thread');
+
+        projectIdInput.value = params.get('projectId') || '';
+        otherUserIdInput.value = params.get('otherUserId') || '';
+
+        function ids() {
+          return {
+            projectId: projectIdInput.value.trim(),
+            otherUserId: otherUserIdInput.value.trim()
+          };
+        }
+
+        function renderThread(messages) {
+          if (!messages.length) {
+            thread.innerHTML = '<p class="muted">No messages yet.</p>';
+            return;
+          }
+
+          thread.innerHTML = messages
+            .map(
+              (m) => `
+              <article class="item">
+                <p><strong>${escapeHtml(m.sender?.name || 'Unknown')}</strong> -> ${escapeHtml(m.recipient?.name || 'Unknown')}</p>
+                <p>${escapeHtml(m.content || '')}</p>
+                <p class="muted">${escapeHtml(new Date(m.createdAt).toLocaleString())}</p>
+              </article>
+            `
+            )
+            .join('');
+        }
+
+        async function loadThread() {
+          const { projectId, otherUserId } = ids();
+          if (!projectId || !otherUserId) {
+            status.textContent = 'Project ID and Other User ID are required.';
+            return;
+          }
+
+          status.textContent = 'Loading thread...';
+          thread.innerHTML = '';
+
+          try {
+            const data = await request(
+              `/projects/${encodeURIComponent(projectId)}/messages/with/${encodeURIComponent(otherUserId)}`,
+              {
+                method: 'GET',
+                headers: { Authorization: `Bearer ${auth.getToken()}` }
+              }
+            );
+            renderThread(data.messages || []);
+            status.textContent = '';
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        }
+
+        async function sendMessage() {
+          const { projectId, otherUserId } = ids();
+          const content = messageInput.value.trim();
+          if (!projectId || !otherUserId || !content) {
+            status.textContent = 'Project ID, Other User ID and message are required.';
+            return;
+          }
+
+          status.textContent = 'Sending message...';
+          try {
+            await request(`/projects/${encodeURIComponent(projectId)}/messages`, {
+              method: 'POST',
+              body: { recipientId: otherUserId, content },
+              headers: { Authorization: `Bearer ${auth.getToken()}` }
+            });
+            messageInput.value = '';
+            status.textContent = 'Message sent.';
+            await loadThread();
+          } catch (err) {
+            status.textContent = err.message;
+          }
+        }
+
+        loadBtn.addEventListener('click', loadThread);
+        sendBtn.addEventListener('click', sendMessage);
+        logoutBtn.addEventListener('click', logoutCurrentUser);
+
+        if (projectIdInput.value && otherUserIdInput.value) {
+          loadThread();
+        }
+      })();
+    </script>
+  </body>
+</html>
